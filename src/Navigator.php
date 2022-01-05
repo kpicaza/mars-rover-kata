@@ -4,8 +4,15 @@ declare(strict_types=1);
 
 namespace Kpicaza\MarsRover;
 
+use Kpicaza\MarsRover\Exception\ObstacleDetected;
+
 final class Navigator
 {
+    public function __construct(
+        private ObstacleInPosition $obstacleInPosition
+    ) {
+    }
+
     public function move(
         Position $position,
         Direction $direction,
@@ -13,10 +20,18 @@ final class Navigator
     ): Position {
         switch ($command) {
             case 'forward':
-                return $this->moveForward($position, $direction);
+                $position = $this->moveForward($position, $direction);
+                break;
             case 'backward':
-                return $this->moveBackward($position, $direction);
+                $position = $this->moveBackward($position, $direction);
+                break;
         }
+
+        if ($this->obstacleInPosition->isSatisfiedBy($position)) {
+            throw ObstacleDetected::at($position);
+        }
+
+        return $position;
     }
 
     public function rotate(Direction $direction, string $command): Direction

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Kpicaza\MarsRover\Event;
 
 use DateTimeImmutable;
+use Kpicaza\MarsRover\Direction;
+use Kpicaza\MarsRover\Position;
 
 final class CommandSubmitted
 {
@@ -20,14 +22,14 @@ final class CommandSubmitted
         return new self($payload, new DateTimeImmutable());
     }
 
-    public function position(): array
+    public function position(): Position
     {
-        return $this->payload['position'];
+        return new Position($this->payload['position_x'], $this->payload['position_y']);
     }
 
-    public function direction(): string
+    public function direction(): Direction
     {
-        return $this->payload['direction'];
+        return new Direction($this->payload['direction']);
     }
 
     public function operation(): string

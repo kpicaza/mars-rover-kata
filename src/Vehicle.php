@@ -22,33 +22,42 @@ final class Vehicle
     public function run(array $commands): void
     {
         foreach ($commands as $command) {
-            $this->recordThat(CommandSubmitted::occur([
-                'position' => $this->position(),
-                'direction' => $this->direction(),
-                'operation' => $command->operation,
-                'command' => $command->command,
-            ]));
+            $this->execute($command);
+
+            $this->popEvents();
         }
+    }
+
+    private function execute(Command $command): void
+    {
+        $this->recordThat(CommandSubmitted::occur([
+            'position_x' => $this->position->x,
+            'position_y' => $this->position->y,
+            'direction' => $this->direction->direction,
+            'operation' => $command->operation,
+            'command' => $command->command,
+        ]));
     }
 
     private function whenCommandSubmitted(CommandSubmitted $event): void
     {
         switch ($event->operation()) {
             case 'move':
-                $this->position = $this->navigator->move($this->position, $this->direction, $event->command());
+                $this->position = $this->navigator->move($event->position(), $event->direction(), $event->command());
                 break;
             case 'rotate':
-                $this->direction = $this->navigator->rotate($this->direction, $event->command());
+                $this->direction = $this->navigator->rotate($event->direction(), $event->command());
                 break;
         }
     }
 
     public function popEvents(): array
     {
-        $events = $this->events;
         foreach ($this->events as $event) {
             $this->apply($event);
         }
+        $events = $this->events;
+        $this->events = [];
 
         return $events;
     }

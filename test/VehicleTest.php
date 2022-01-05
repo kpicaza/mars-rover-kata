@@ -7,7 +7,9 @@ namespace Test\Kpicaza\MarsRover;
 use Generator;
 use Kpicaza\MarsRover\Command;
 use Kpicaza\MarsRover\Direction;
+use Kpicaza\MarsRover\Exception\ObstacleDetected;
 use Kpicaza\MarsRover\Navigator;
+use Kpicaza\MarsRover\ObstacleInPosition;
 use Kpicaza\MarsRover\Position;
 use Kpicaza\MarsRover\Vehicle;
 use PHPUnit\Framework\TestCase;
@@ -16,13 +18,41 @@ final class VehicleTest extends TestCase
 {
     public function testReceivedACharacterArrayOfCommands(): void
     {
-        $command = new Command('move', 'forward');
-        $vehicle = new Vehicle(new Position(0, 0), new Direction('N'), new Navigator());
-        $vehicle->run([
-            $command
-        ]);
+        $obstacleInPosition = $this->createMock(ObstacleInPosition::class);
+        $commands = [
+            new Command('move', 'forward'),
+            new Command('rotate', 'left'),
+            new Command('move', 'forward'),
+            new Command('move', 'forward'),
+        ];
+        $vehicle = new Vehicle(new Position(0, 0), new Direction('N'), new Navigator($obstacleInPosition));
+        $vehicle->run($commands);
 
-        $this->assertCount(1, $vehicle->popEvents());
+        $this->assertSame(1, $vehicle->position()->x);
+        $this->assertSame(2, $vehicle->position()->y);
+        $this->assertSame('W', $vehicle->direction()->direction);
+    }
+
+    public function testExecuteCommandsUntilMeetAnObstacle(): void
+    {
+        $this->expectException(ObstacleDetected::class);
+        $this->expectExceptionMessage('Obstacle detected at: [x: 1, y: 2]');
+        $obstacleInPosition = $this->createMock(ObstacleInPosition::class);
+        $obstacleInPosition->expects($this->exactly(3))
+            ->method('isSatisfiedBy')
+            ->willReturnOnConsecutiveCalls(false, false, true);
+        $commands = [
+            new Command('move', 'forward'),
+            new Command('rotate', 'left'),
+            new Command('move', 'forward'),
+            new Command('move', 'forward'),
+        ];
+        $vehicle = new Vehicle(new Position(0, 0), new Direction('N'), new Navigator($obstacleInPosition));
+        $vehicle->run($commands);
+
+        $this->assertSame(1, $vehicle->position()->x);
+        $this->assertSame(1, $vehicle->position()->y);
+        $this->assertSame('W', $vehicle->direction()->direction);
     }
 
     /** @dataProvider getMoveForwardData */
@@ -32,8 +62,9 @@ final class VehicleTest extends TestCase
         Position $expectedPosition,
         Direction $expectedDirection
     ): void {
+        $obstacleInPosition = $this->createMock(ObstacleInPosition::class);
         $command = new Command('move', 'forward');
-        $vehicle = new Vehicle($position, $direction, new Navigator());
+        $vehicle = new Vehicle($position, $direction, new Navigator($obstacleInPosition));
         $vehicle->run([
             $command
         ]);
@@ -51,8 +82,9 @@ final class VehicleTest extends TestCase
         Position $expectedPosition,
         Direction $expectedDirection
     ): void {
+        $obstacleInPosition = $this->createMock(ObstacleInPosition::class);
         $command = new Command('move', 'backward');
-        $vehicle = new Vehicle($position, $direction, new Navigator());
+        $vehicle = new Vehicle($position, $direction, new Navigator($obstacleInPosition));
         $vehicle->run([
             $command
         ]);
@@ -69,10 +101,10 @@ final class VehicleTest extends TestCase
         Direction $direction,
         Position $expectedPosition,
         Direction $expectedDirection
-    ): void
-    {
+    ): void {
+        $obstacleInPosition = $this->createMock(ObstacleInPosition::class);
         $command = new Command('rotate', 'left');
-        $vehicle = new Vehicle($position, $direction, new Navigator());
+        $vehicle = new Vehicle($position, $direction, new Navigator($obstacleInPosition));
         $vehicle->run([
             $command
         ]);
@@ -89,10 +121,10 @@ final class VehicleTest extends TestCase
         Direction $direction,
         Position $expectedPosition,
         Direction $expectedDirection
-    ): void
-    {
+    ): void {
+        $obstacleInPosition = $this->createMock(ObstacleInPosition::class);
         $command = new Command('rotate', 'right');
-        $vehicle = new Vehicle($position, $direction, new Navigator());
+        $vehicle = new Vehicle($position, $direction, new Navigator($obstacleInPosition));
         $vehicle->run([
             $command
         ]);
@@ -112,10 +144,24 @@ final class VehicleTest extends TestCase
             new Direction('N'),
         ];
 
+        yield 'Move from the North to planet limit' => [
+            new Position(4, 0),
+            new Direction('N'),
+            new Position(0, 0),
+            new Direction('N'),
+        ];
+
         yield 'Move from the West' => [
             new Position(0, 0),
             new Direction('W'),
             new Position(0, 1),
+            new Direction('W'),
+        ];
+
+        yield 'Move from the West to planet limit' => [
+            new Position(0, 4),
+            new Direction('W'),
+            new Position(0, 0),
             new Direction('W'),
         ];
 
