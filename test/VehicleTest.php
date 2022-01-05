@@ -7,6 +7,7 @@ namespace Test\Kpicaza\MarsRover;
 use Generator;
 use Kpicaza\MarsRover\Command;
 use Kpicaza\MarsRover\Direction;
+use Kpicaza\MarsRover\Navigator;
 use Kpicaza\MarsRover\Position;
 use Kpicaza\MarsRover\Vehicle;
 use PHPUnit\Framework\TestCase;
@@ -16,7 +17,7 @@ final class VehicleTest extends TestCase
     public function testReceivedACharacterArrayOfCommands(): void
     {
         $command = new Command('move', 'forward');
-        $vehicle = new Vehicle(new Position(0, 0), new Direction('N'));
+        $vehicle = new Vehicle(new Position(0, 0), new Direction('N'), new Navigator());
         $vehicle->run([
             $command
         ]);
@@ -32,7 +33,7 @@ final class VehicleTest extends TestCase
         Direction $expectedDirection
     ): void {
         $command = new Command('move', 'forward');
-        $vehicle = new Vehicle($position, $direction);
+        $vehicle = new Vehicle($position, $direction, new Navigator());
         $vehicle->run([
             $command
         ]);
@@ -51,7 +52,7 @@ final class VehicleTest extends TestCase
         Direction $expectedDirection
     ): void {
         $command = new Command('move', 'backward');
-        $vehicle = new Vehicle($position, $direction);
+        $vehicle = new Vehicle($position, $direction, new Navigator());
         $vehicle->run([
             $command
         ]);
@@ -71,7 +72,7 @@ final class VehicleTest extends TestCase
     ): void
     {
         $command = new Command('rotate', 'left');
-        $vehicle = new Vehicle($position, $direction);
+        $vehicle = new Vehicle($position, $direction, new Navigator());
         $vehicle->run([
             $command
         ]);
@@ -91,7 +92,7 @@ final class VehicleTest extends TestCase
     ): void
     {
         $command = new Command('rotate', 'right');
-        $vehicle = new Vehicle($position, $direction);
+        $vehicle = new Vehicle($position, $direction, new Navigator());
         $vehicle->run([
             $command
         ]);
@@ -121,14 +122,14 @@ final class VehicleTest extends TestCase
         yield 'Move from the South' => [
             new Position(0, 0),
             new Direction('S'),
-            new Position(-1, 0),
+            new Position(4, 0),
             new Direction('S'),
         ];
 
         yield 'Move from the East' => [
             new Position(0, 0),
             new Direction('E'),
-            new Position(0, -1),
+            new Position(0, 4),
             new Direction('E'),
         ];
     }
@@ -138,14 +139,14 @@ final class VehicleTest extends TestCase
         yield 'Move from the North' => [
             new Position(0, 0),
             new Direction('N'),
-            new Position(-1, 0),
+            new Position(4, 0),
             new Direction('N'),
         ];
 
         yield 'Move from the West' => [
             new Position(0, 0),
             new Direction('W'),
-            new Position(0, -1),
+            new Position(0, 4),
             new Direction('W'),
         ];
 

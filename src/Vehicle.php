@@ -8,19 +8,12 @@ use Kpicaza\MarsRover\Event\CommandSubmitted;
 
 final class Vehicle
 {
-    private array $events;
-    private Navigation $navigation;
-
     public function __construct(
-        Position $position,
-        Direction $direction,
-        array $events = []
+        private Position $position,
+        private Direction $direction,
+        private Navigator $navigator,
+        private array $events = []
     ) {
-        $this->navigation = new Navigation(
-            $position,
-            $direction
-        );
-        $this->events = $events;
     }
 
     /**
@@ -40,10 +33,14 @@ final class Vehicle
 
     private function whenCommandSubmitted(CommandSubmitted $event): void
     {
-        $this->navigation->navigate(
-            $event->operation(),
-            $event->command()
-        );
+        switch ($event->operation()) {
+            case 'move':
+                $this->position = $this->navigator->move($this->position, $this->direction, $event->command());
+                break;
+            case 'rotate':
+                $this->direction = $this->navigator->rotate($this->direction, $event->command());
+                break;
+        }
     }
 
     public function popEvents(): array
@@ -68,11 +65,11 @@ final class Vehicle
 
     public function position(): Position
     {
-        return $this->navigation->position();
+        return $this->position;
     }
 
     public function direction(): Direction
     {
-        return $this->navigation->direction();
+        return $this->direction;
     }
 }

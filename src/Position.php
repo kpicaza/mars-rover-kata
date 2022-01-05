@@ -14,22 +14,42 @@ final class Position
 
     public function addYAxis(): self
     {
-        return new self($this->x, $this->y + 1);
+        $newY = $this->y + 1;
+        if (Planet::Y_LENGTH === $newY) {
+            $newY = 0;
+        }
+
+        return new self($this->x, $newY);
     }
 
     public function subYAxis(): self
     {
-        return new self($this->x, $this->y - 1);
+        $newY = $this->y - 1;
+        if (0 > $newY) {
+            $newY = Planet::Y_LENGTH - 1;
+        }
+
+        return new self($this->x, $newY);
     }
 
     public function addXAxis(): self
     {
-        return new self($this->x + 1, $this->y);
+        $newX = $this->x + 1;
+        if (Planet::X_LENGTH === $newX) {
+            $newX = 0;
+        }
+
+        return new self($newX, $this->y);
     }
 
     public function subXAxis(): self
     {
-        return new self($this->x - 1, $this->y);
+        $newX = $this->x - 1;
+        if (0 > $newX) {
+            $newX = Planet::X_LENGTH - 1;
+        }
+
+        return new self($newX, $this->y);
     }
 }
     
