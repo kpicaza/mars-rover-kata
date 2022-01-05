@@ -42,10 +42,10 @@ final class VehicleTest extends TestCase
             ->method('isSatisfiedBy')
             ->willReturnOnConsecutiveCalls(false, false, true);
         $commands = [
-            new Command('move', 'forward'),
-            new Command('rotate', 'left'),
-            new Command('move', 'forward'),
-            new Command('move', 'forward'),
+            Command::fromSingleLetterCommand('F'),
+            Command::fromSingleLetterCommand('L'),
+            Command::fromSingleLetterCommand('F'),
+            Command::fromSingleLetterCommand('F'),
         ];
         $vehicle = new Vehicle(new Position(0, 0), new Direction('N'), new Navigator($obstacleInPosition));
         $vehicle->run($commands);
